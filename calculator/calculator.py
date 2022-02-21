@@ -6,9 +6,9 @@ from PIL import (
 )
 
 import config
-import figure
 
-from interface import Shape
+from figure import Shape
+from interface import ShapeInterface
 
 
 class TkinterCalculator:
@@ -18,7 +18,6 @@ class TkinterCalculator:
         self.window.resizable(0, 0)
         self.window.title(config.FRAMES['calc_window']['title'])
 
-        self._figures = self.add_figures()
         self._characteristic_calculator = CharacteristicCalculator()
 
         self.title_frame = self.create_title_frame()
@@ -57,14 +56,13 @@ class TkinterCalculator:
     def create_ddmenu_frame(self):
 
         content = config.FRAMES['ddmenu']['content']
-        x = config.FRAMES['ddmenu']['place'][0]
-        y = config.FRAMES['ddmenu']['place'][1]
+        x, y = config.FRAMES['ddmenu']['place']
 
         frame_content = tk.StringVar()
         frame_content.set(content)
 
-        frame_option_menu_items = [figure_klass.name
-                                   for figure_klass in self._figures]
+        frame_option_menu_items = [figure_name
+                                   for figure_name in config.FIGURES]
         frame_option_menu = tk.OptionMenu(self.window, frame_content,
                                           *frame_option_menu_items,
                                           command=self.shape_choiced)
@@ -76,16 +74,15 @@ class TkinterCalculator:
     def create_ddcharacterestic_frame(self):
 
         content = config.FRAMES['ddcharacterestic']['content']
-        x = config.FRAMES['ddcharacterestic']['place'][0]
-        y = config.FRAMES['ddcharacterestic']['place'][1]
+        x, y = config.FRAMES['ddcharacterestic']['place']
 
         frame_content = tk.StringVar()
         frame_content.set(content)
 
-        frame_option_menu_items = [ch_name
-                                   for figure_klass in self._figures
-                                   for ch_name in figure_klass.characteristics
-                                   if figure_klass.name == self.ddmenu_frame_content.get()]
+        figure_choiced_name = self.ddmenu_frame_content.get()
+        characteristics = config.FIGURES[figure_choiced_name]['characteristics']
+        frame_option_menu_items = [characteristic['name']
+                                   for characteristic in characteristics]
 
         frame_option_menu = tk.OptionMenu(self.window, frame_content,
                                           *frame_option_menu_items,
@@ -95,13 +92,12 @@ class TkinterCalculator:
         frame_option_menu.place(x=x, y=y)
         return frame_option_menu, frame_content
 
-    def create_image_frame(self, figure: Shape):
+    def create_image_frame(self, image_filepath):
 
         size = config.FRAMES['image']['size']
-        x = config.FRAMES['image']['place'][0]
-        y = config.FRAMES['image']['place'][1]
+        x, y = config.FRAMES['image']['place']
 
-        img = Image.open(figure.image_filepath)
+        img = Image.open(image_filepath)
         img_ = img.resize(size)
         image = ImageTk.PhotoImage(img_)
         frame_label = tk.Label(self.window, image=image)
@@ -113,12 +109,13 @@ class TkinterCalculator:
     def create_input_frame(self, frame_label_map_entry=None):
 
         figure_choiced_name = self.ddmenu_frame_content.get()
-        figure_klass = self.get_figure_klass(figure_choiced_name)
-        figure_ = figure_klass()
-        figure_params = figure_.__dict__.keys()
-        figure_params_ = [config.FIGURE_PARAMETERS_NOTATIONS[k]
-                          for k in figure_params]
-        frame_label_map_entry = self.get_input_fields(figure_params_)
+        figure_choiced_characteristic = self._ddcharacteristic_frame_content.get()
+
+        characteristics = config.FIGURES[figure_choiced_name]['characteristics']
+        figure_params_ = [characteristic['params'].values()
+                          for characteristic in characteristics
+                          if characteristic['name'] == figure_choiced_characteristic]
+        frame_label_map_entry = self.get_input_fields(*figure_params_)
 
         return frame_label_map_entry
 
@@ -129,8 +126,7 @@ class TkinterCalculator:
         bg = config.FRAMES['display']['bg']
         width = config.FRAMES['display']['width']
         height = config.FRAMES['display']['height']
-        x = config.FRAMES['display']['place'][0]
-        y = config.FRAMES['display']['place'][1]
+        x, y = config.FRAMES['display']['place']
 
         frame_label = tk.Label(text=text, font=font,
                                bg=bg, width=width,
@@ -142,12 +138,10 @@ class TkinterCalculator:
     def create_special_buttons(self):
 
         text_clear_button = config.FRAMES['clear_button']['text']
-        x_clear_button = config.FRAMES['clear_button']['place'][0]
-        y_clear_button = config.FRAMES['clear_button']['place'][1]
+        x_clear_button, y_clear_button = config.FRAMES['clear_button']['place']
 
         text_calcu_button = config.FRAMES['calcu_button']['text']
-        x_calcu_button = config.FRAMES['calcu_button']['place'][0]
-        y_calcu_button = config.FRAMES['calcu_button']['place'][1]
+        x_calcu_button, y_calcu_button = config.FRAMES['calcu_button']['place']
 
         clear_button = tk.Button(text=text_clear_button,
                                  command=self.clear_button_pushed,
@@ -159,18 +153,6 @@ class TkinterCalculator:
         clear_button.place(x=x_clear_button, y=y_clear_button)
         calcu_button.place(x=x_calcu_button, y=y_calcu_button)
 
-    def add_figures(self):
-        figures = [
-            figure.Circle, figure.Square,
-            figure.Rectangle, figure.Triangle,
-            figure.Trapezoid, figure.Rhombus,
-            figure.Sphere, figure.Cube,
-            figure.Parallelepiped, figure.Pyramid,
-            figure.Cylinder, figure.Cone,
-        ]
-
-        return figures
-
     # Обработчики воздействий
 
     def shape_choiced(self, event):
@@ -181,8 +163,7 @@ class TkinterCalculator:
     def characteristic_choiced(self, *args):
 
         figure_choiced_name = self.ddmenu_frame_content.get()
-        figure_klass = self.get_figure_klass(figure_choiced_name)
-        figure_ = figure_klass()
+        image_filepath = config.FIGURES[figure_choiced_name]['image_filepath']
 
         # Повторный выбор характеристики для той же фигуры
         try:
@@ -193,7 +174,7 @@ class TkinterCalculator:
         except Exception:
             pass
 
-        self._image_frame = self.create_image_frame(figure_)
+        self._image_frame = self.create_image_frame(image_filepath)
         self._input_frame = self.create_input_frame()
 
     def calculate_button_pushed(self, *args):
@@ -201,16 +182,23 @@ class TkinterCalculator:
         figure_choiced_name = self.ddmenu_frame_content.get()
         figure_choiced_characteristic = self._ddcharacteristic_frame_content.get()
 
-        figure_klass = self.get_figure_klass(figure_choiced_name)
-        figure_params = {frame_entry_label.cget('text'): float(frame_entry.get())
+        figure_params = {self.get_param_by_alias(figure_choiced_name,
+                                                 figure_choiced_characteristic,
+                                                 frame_entry_label.cget('text')): float(frame_entry.get())
                          for frame_entry_label, frame_entry in self._input_frame.items()}
 
-        figure_ = figure_klass(*figure_params.values())
-        calculation_result = (self._characteristic_calculator
-                              .get_characteristic(figure_,
-                                                  figure_choiced_characteristic))
+        figure_ = Shape(figure_choiced_name)
+        figure_.params = figure_params
+        try:
+            figure_.validate(figure_params)
+        except ValueError:
+            return
+        else:
+            calculation_result = (self._characteristic_calculator
+                                  .get_characteristic(figure_,
+                                                      figure_choiced_characteristic))
 
-        self.display_frame.config(text=calculation_result)
+            self.display_frame.config(text=calculation_result)
 
     def clear_button_pushed(self, *args):
 
@@ -226,12 +214,15 @@ class TkinterCalculator:
 
         self.display_frame.config(text='')
 
-    def get_figure_klass(self, figure_choiced_name):
-        for figure_klass in self._figures:
-            if figure_klass.name == figure_choiced_name:
-                break
+    @staticmethod
+    def get_param_by_alias(figure_name, ch_name, alias_name):
 
-        return figure_klass
+        characteristics = config.FIGURES[figure_name]['characteristics']
+        for characteristic in characteristics:
+            if characteristic['name'] == ch_name:
+                for param_name, alias in characteristic['params'].items():
+                    if alias == alias_name:
+                        return param_name
 
     def get_input_fields(self, figure_params, frame_label_map_entry=None) -> dict:
 
@@ -240,9 +231,8 @@ class TkinterCalculator:
         entry_width = config.FRAMES['input']['entry_width']
         entry_bd = config.FRAMES['input']['entry_bd']
         entry_font = config.FRAMES['input']['entry_font']
-        x_label = config.FRAMES['input']['label_place'][0]
+        x_label, y_ = config.FRAMES['input']['label_place']
         x_entry = config.FRAMES['input']['entry_place'][0]
-        y_ = config.FRAMES['input']['label_place'][1]
 
         frame_label_map_entry = frame_label_map_entry or {}
         for step, figure_param in enumerate(figure_params, 1):
@@ -262,7 +252,7 @@ class TkinterCalculator:
 
 class CharacteristicCalculator:
 
-    def get_characteristic(self, figure: Shape, ch_name):
+    def get_characteristic(self, figure: ShapeInterface, ch_name):
         if ch_name == config.Characteristic.AREA.value:
             characteristic = figure.area()
         elif ch_name == config.Characteristic.PERIMETER.value:
@@ -273,6 +263,6 @@ class CharacteristicCalculator:
         return '{:.8f}'.format(characteristic)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     tkinter_calculator = TkinterCalculator()
     tkinter_calculator.run()

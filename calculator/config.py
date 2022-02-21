@@ -1,4 +1,13 @@
+import os
 from enum import Enum
+
+from environs import Env
+
+
+env = Env()
+env.read_env()
+
+FIGURES_IMAGES_FILEPATH = env('FIGURES_IMAGES_FILEPATH')
 
 
 FRAMES = {
@@ -63,20 +72,207 @@ FRAMES = {
 }
 
 
-FIGURE_PARAMETERS_NOTATIONS = {
-    'apothem': 'f',
-    'height': 'h',
-    'perimeter': 'p',
-    'radius': 'r',
-    'side': 'a',
-    'side_first': 'a',
-    'side_second': 'b',
-    'side_third': 'c',
-    'slant_height': 'l',
-}
-
-
 class Characteristic(Enum):
     AREA = 'Площадь'
     PERIMETER = 'Периметр'
     VOLUME = 'Объём'
+
+
+def get_image_filepath(figure_name, files_path=FIGURES_IMAGES_FILEPATH):
+    for root, _, files in os.walk(files_path):
+        for file in files:
+            filename_without_ext = os.path.splitext(file)[0]
+            if figure_name == filename_without_ext:
+                return os.path.join(root, file)
+
+
+FIGURES = {
+    'Круг': {
+        'name_en': 'circle',
+        'image_filepath': get_image_filepath('circle'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'radius': 'r',
+                },
+            },
+        ],
+    },
+    'Квадрат': {
+        'name_en': 'square',
+        'image_filepath': get_image_filepath('square'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'side_first': 'a',
+                },
+            },
+            {
+                'name': Characteristic.PERIMETER.value,
+                'params': {
+                    'side_first': 'a',
+                },
+            },
+        ],
+    },
+    'Прямоугольник': {
+        'name_en': 'rectangle',
+        'image_filepath': get_image_filepath('rectangle'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'side_first': 'a',
+                    'side_second': 'b',
+                },
+            },
+            {
+                'name': Characteristic.PERIMETER.value,
+                'params': {
+                    'side_first': 'a',
+                    'side_second': 'b',
+                },
+            },
+        ],
+    },
+    'Треугольник': {
+        'name_en': 'triangle',
+        'image_filepath': get_image_filepath('triangle'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'side_first': 'a',
+                    'side_second': 'b',
+                    'side_third': 'c',
+                },
+            },
+            {
+                'name': Characteristic.PERIMETER.value,
+                'params': {
+                    'side_first': 'a',
+                    'side_second': 'b',
+                    'side_third': 'c',
+                },
+            },
+        ],
+    },
+    'Трапеция': {
+        'name_en': 'trapezoid',
+        'image_filepath': get_image_filepath('trapezoid'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'side_first': 'a',
+                    'side_second': 'b',
+                    'height': 'h',
+                },
+            },
+        ],
+    },
+    'Ромб': {
+        'name_en': 'rhombus',
+        'image_filepath': get_image_filepath('rhombus'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'side_first': 'a',
+                    'height': 'h',
+                },
+            },
+        ],
+    },
+    'Сфера': {
+        'name_en': 'sphere',
+        'image_filepath': get_image_filepath('sphere'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'radius': 'r',
+                },
+            },
+            {
+                'name': Characteristic.VOLUME.value,
+                'params': {
+                    'radius': 'r',
+                },
+            },
+        ],
+    },
+    'Куб': {
+        'name_en': 'cube',
+        'image_filepath': get_image_filepath('cube'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'side_first': 'a',
+                },
+            },
+            {
+                'name': Characteristic.VOLUME.value,
+                'params': {
+                    'side_first': 'a',
+                },
+            },
+        ],
+    },
+    'Параллелепипед': {
+        'name_en': 'parallelepiped',
+        'image_filepath': get_image_filepath('parallelepiped'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'side_first': 'a',
+                    'side_second': 'b',
+                    'side_third': 'c',
+                },
+            },
+        ],
+    },
+    'Пирамида': {
+        'name_en': 'pyramid',
+        'image_filepath': get_image_filepath('pyramid'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'perimeter': 'p',
+                    'apothem': 'f',
+                },
+            },
+        ],
+    },
+    'Цилиндр': {
+        'name_en': 'cylinder',
+        'image_filepath': get_image_filepath('cylinder'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'radius': 'r',
+                    'height': 'h',
+                },
+            },
+        ],
+    },
+    'Конус': {
+        'name_en': 'cone',
+        'image_filepath': get_image_filepath('cone'),
+        'characteristics': [
+            {
+                'name': Characteristic.AREA.value,
+                'params': {
+                    'radius': 'r',
+                    'slant_height': 'l',
+                },
+            },
+        ],
+    },
+}

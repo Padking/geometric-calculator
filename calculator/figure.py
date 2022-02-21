@@ -2,244 +2,158 @@ from math import pi
 
 from environs import Env
 
-import config
-
-from interface import Shape
+from interface import ShapeInterface
 
 
 env = Env()
 env.read_env()
 
 
-class Circle(Shape):
+class Shape(ShapeInterface):
+    def __init__(self, name, params: dict = None):
+        self.name = name
+        self.params = params or {}
 
-    name = 'Круг'
-    image_filepath = env('CIRCLE_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
+    @classmethod
+    def concrete(cls, config_):
+        return cls(**config_)
 
-    def __init__(self, radius=1):
-        super().__init__()
-        self.radius = radius
-
-    def area(self):
-        area_v = pi * self.radius ** 2
+    @staticmethod
+    def circle_area(radius):
+        area_v = pi * radius ** 2
         return area_v
 
-
-class Square(Shape):
-
-    name = 'Квадрат'
-    image_filepath = env('SQUARE_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-        config.Characteristic.PERIMETER.value,
-    ]
-
-    def __init__(self, side=1):
-        super().__init__()
-        self.side = side
-
-    def area(self):
-        area_v = self.side ** 2
+    @staticmethod
+    def square_area(side_first):
+        area_v = side_first ** 2
         return area_v
 
-    def perimeter(self):
-        perimeter_v = 4 * self.side
+    @staticmethod
+    def square_perimeter(side_first):
+        perimeter_v = 4 * side_first
         return perimeter_v
 
-
-class Rectangle(Square):
-
-    name = 'Прямоугольник'
-    image_filepath = env('RECTANGLE_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-        config.Characteristic.PERIMETER.value,
-    ]
-
-    def __init__(self, side_first=1, side_second=1):
-        super().__init__(side_first)
-        self.side_second = side_second
-
-    def area(self):
-        area_v = self.side * self.side_second
+    @staticmethod
+    def rectangle_area(side_first, side_second):
+        area_v = side_first * side_second
         return area_v
 
-    def perimeter(self):
-        perimeter_v = 2 * (self.side + self.side_second)
+    @staticmethod
+    def rectangle_perimeter(side_first, side_second):
+        perimeter_v = 2 * (side_first + side_second)
         return perimeter_v
 
-
-class Triangle(Shape):
-
-    name = 'Треугольник'
-    image_filepath = env('TRIANGLE_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
-
-    def __init__(self, side_first=1, side_second=1, side_third=1):
-        super().__init__()
-        self.side_first = side_first
-        self.side_second = side_second
-        self.side_third = side_third
-
-    def area(self):
-        half_perimeter = self.perimeter() / 2
+    @staticmethod
+    def triangle_area(side_first, side_second, side_third):
+        half_perimeter = (side_first + side_second + side_third) / 2
         area_v = (
             (half_perimeter *
-            (half_perimeter - self.side_first) *
-            (half_perimeter - self.side_second) *
-            (half_perimeter - self.side_third)) ** 0.5
+            (half_perimeter - side_first) *
+            (half_perimeter - side_second) *
+            (half_perimeter - side_third)) ** 0.5
         )
         return area_v
 
-    def perimeter(self):
-        perimeter_v = self.side_first + self.side_second + self.side_third
+    @staticmethod
+    def triangle_perimeter(side_first, side_second, side_third):
+        perimeter_v = side_first + side_second + side_third
         return perimeter_v
 
-
-class Trapezoid(Rectangle):
-
-    name = 'Трапеция'
-    image_filepath = env('TRAPEZOID_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
-
-    def __init__(self, side_first=1, side_second=1, height=1):
-        super().__init__(side_first, side_second)
-        self.height = height
-
-    def area(self):
-        perimeter = super().perimeter()
-        area_v = (perimeter / 4) * self.height
+    @staticmethod
+    def trapezoid_area(side_first, side_second, height):
+        perimeter = 2 * (side_first + side_second)
+        area_v = (perimeter / 4) * height
         return area_v
 
-
-class Rhombus(Square):
-
-    name = 'Ромб'
-    image_filepath = env('RHOMBUS_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
-
-    def __init__(self, side_first=1, height=1):
-        super().__init__(side_first)
-        self.height = height
-
-    def area(self):
-        area_v = self.side * self.height
+    @staticmethod
+    def rhombus_area(side_first, height):
+        area_v = side_first * height
         return area_v
 
-
-class Sphere(Circle):
-
-    name = 'Сфера'
-    image_filepath = env('SPHERE_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-        config.Characteristic.VOLUME.value,
-    ]
-
-    def area(self):
-        area_v = 4 * pi * self.radius ** 2
+    @staticmethod
+    def sphere_area(radius):
+        area_v = 4 * pi * radius ** 2
         return area_v
 
-    def volume(self):
-        volume_v = 4 / 3 * pi * self.radius ** 3
+    @staticmethod
+    def sphere_volume(radius):
+        volume_v = 4 / 3 * pi * radius ** 3
         return volume_v
 
-
-class Cube(Square):
-
-    name = 'Куб'
-    image_filepath = env('CUBE_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-        config.Characteristic.VOLUME.value,
-    ]
-
-    def area(self):
-        area_v = 6 * self.side ** 2
+    @staticmethod
+    def cube_area(side_first):
+        area_v = 6 * side_first ** 2
         return area_v
 
-    def volume(self):
-        volume_v = self.side ** 3
+    @staticmethod
+    def cube_volume(side_first):
+        volume_v = side_first ** 3
         return volume_v
 
-
-class Parallelepiped(Rectangle):
-
-    name = 'Параллелепипед'
-    image_filepath = env('PARALLELEPIPED_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
-
-    def __init__(self, side_first=1, side_second=1, side_third=1):
-        super().__init__(side_first, side_second)
-        self.side_third = side_third
-
-    def area(self):
+    @staticmethod
+    def parallelepiped_area(side_first, side_second, side_third):
         area_v = (
-            2 * (self.side * self.side_second +
-                 self.side_second * self.side_third +
-                 self.side * self.side_third)
+            2 * (side_first * side_second +
+                 side_second * side_third +
+                 side_first * side_third)
         )
         return area_v
 
-
-class Pyramid(Shape):
-
-    name = 'Пирамида'
-    image_filepath = env('PYRAMID_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
-
-    def __init__(self, perimeter=1, apothem=1):
-        super().__init__()
-        self.perimeter = perimeter
-        self.apothem = apothem
-
-    def area(self):
-        area_v = 1 / 2 * self.perimeter * self.apothem
+    @staticmethod
+    def pyramid_area(perimeter, apothem):
+        area_v = 1 / 2 * perimeter * apothem
         return area_v
 
-
-class Cylinder(Circle):
-
-    name = 'Цилиндр'
-    image_filepath = env('CYLINDER_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
-
-    def __init__(self, radius=1, height=1):
-        super().__init__(radius)
-        self.height = height
-
-    def area(self):
-        area_v = 2 * pi * self.radius * (self.height + self.radius)
+    @staticmethod
+    def cylinder_area(radius, height):
+        area_v = 2 * pi * radius * (height + radius)
         return area_v
 
-
-class Cone(Circle):
-
-    name = 'Конус'
-    image_filepath = env('CONE_IMAGE_FILEPATH')
-    characteristics = [
-        config.Characteristic.AREA.value,
-    ]
-
-    def __init__(self, radius=1, slant_height=1):
-        super().__init__(radius)
-        self.slant_height = slant_height
+    @staticmethod
+    def cone_area(radius, slant_height):
+        area_v = pi * radius * (slant_height + radius)
+        return area_v
 
     def area(self):
-        area_v = pi * self.radius * (self.slant_height + self.radius)
-        return area_v
+        if self.name == 'Круг':
+            return self.circle_area(**self.params)
+        elif self.name == 'Квадрат':
+            return self.square_area(**self.params)
+        elif self.name == 'Прямоугольник':
+            return self.rectangle_area(**self.params)
+        elif self.name == 'Треугольник':
+            return self.triangle_area(**self.params)
+        elif self.name == 'Трапеция':
+            return self.trapezoid_area(**self.params)
+        elif self.name == 'Ромб':
+            return self.rhombus_area(**self.params)
+        elif self.name == 'Сфера':
+            return self.sphere_area(**self.params)
+        elif self.name == 'Куб':
+            return self.cube_area(**self.params)
+        elif self.name == 'Параллелепипед':
+            return self.parallelepiped_area(**self.params)
+        elif self.name == 'Пирамида':
+            return self.pyramid_area(**self.params)
+        elif self.name == 'Цилиндр':
+            return self.cylinder_area(**self.params)
+        elif self.name == 'Конус':
+            return self.cone_area(**self.params)
+
+    def perimeter(self):
+        if self.name == 'Квадрат':
+            return self.square_perimeter(**self.params)
+        elif self.name == 'Прямоугольник':
+            return self.rectangle_perimeter(**self.params)
+        elif self.name == 'Треугольник':
+            return self.triangle_perimeter(**self.params)
+
+    def volume(self):
+        if self.name == 'Сфера':
+            return self.sphere_volume(**self.params)
+        elif self.name == 'Куб':
+            return self.cube_volume(**self.params)
+
+    def validate(self, params: dict):
+        if not all([None if param <= 0 else param for param in params.values()]):
+            raise ValueError('Есть параметр <= нулю!')

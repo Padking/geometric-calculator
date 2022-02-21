@@ -1,14 +1,19 @@
-class Shape:
+from abc import (
+    ABC,
+    abstractmethod,
+)
 
-    name = 'Фигура'
-    image_filepath = ''
-    characteristics = None
 
+class ShapeInterface(ABC):
+
+    @abstractmethod
     def area(self):
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def perimeter(self):
-        raise NotImplementedError
+        ...
 
+    @abstractmethod
     def volume(self):
-        raise NotImplementedError
+        ...
